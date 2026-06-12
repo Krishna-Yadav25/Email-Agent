@@ -3,9 +3,10 @@ import logging
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
+DB_PATH = "emails.db"
 
 def init_db():
-    conn = sqlite3.connect("emails.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS emails (
@@ -22,7 +23,7 @@ def init_db():
 
 def save_email(email_text, category, reply):
     try:
-        conn = sqlite3.connect("emails.db")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO emails (email_text, category, reply, timestamp) VALUES (?, ?, ?, ?)",
@@ -36,7 +37,7 @@ def save_email(email_text, category, reply):
 
 def get_all_emails():
     try:
-        conn = sqlite3.connect("emails.db")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM emails")
         rows = cursor.fetchall()
@@ -45,4 +46,3 @@ def get_all_emails():
     except Exception as e:
         logger.error(f"Failed to fetch emails: {e}")
         return []
-        
