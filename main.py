@@ -2,6 +2,7 @@ import logging
 from dotenv import load_dotenv
 from agents.classifier import classify_email
 from agents.responder import generate_response
+from database.db import init_db, save_email
 
 logging.basicConfig(
     level=logging.INFO,
@@ -9,6 +10,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 load_dotenv()
+init_db()  
 
 def process_email(email_text):
     logger.info("=== Starting email processing ===")
@@ -17,6 +19,7 @@ def process_email(email_text):
         print(f"\n Category Detected: {category.upper()}")
 
         reply = generate_response(email_text, category)
+        save_email(email_text, category, reply)
         print(f"\n=== AI Generated Reply ===")
         print(reply)
 
