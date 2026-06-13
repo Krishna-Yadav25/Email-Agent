@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from agents.classifier import classify_email
 from agents.responder import generate_response
 from database.db import init_db, save_email, get_all_emails
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
