@@ -1,12 +1,12 @@
 import logging
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from agents.classifier import classify_email
 from agents.responder import generate_response
 from database.db import init_db, save_email, get_all_emails
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Email Response Agent", version="1.0.0")
 init_db()
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 class EmailRequest(BaseModel):
     email_text: str
 
@@ -22,9 +24,9 @@ class EmailResponse(BaseModel):
     category: str
     reply: str
 
-@app.get("/")
+@app.get("/", response_class=FileResponse)
 def home():
-    return {"message": "Email Agent API is running!"}
+    return FileResponse("static/index.html")
 
 @app.post("/process-email", response_model=EmailResponse)
 def process_email(request: EmailRequest):

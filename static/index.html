@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Response Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222535;
+    --border: #2e3148;
+    --accent: #6366f1;
+    --accent-soft: rgba(99,102,241,0.12);
+    --accent-glow: rgba(99,102,241,0.25);
+    --green: #22c55e;
+    --green-soft: rgba(34,197,94,0.12);
+    --red: #ef4444;
+    --red-soft: rgba(239,68,68,0.1);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245,158,11,0.1);
+    --text: #e8eaf0;
+    --text-muted: #6b7280;
+    --text-dim: #9ca3af;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    background: rgba(15,17,23,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo-dot {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  header span { font-size: 12px; background: var(--green-soft); color: var(--green); padding: 2px 10px; border-radius: 20px; margin-left: auto; font-weight: 500; }
+
+  /* Layout */
+  .layout {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  /* Hero */
+  .hero { text-align: center; padding: 1rem 0 0.5rem; }
+  .hero h2 { font-size: 2rem; font-weight: 600; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 0.75rem; }
+  .hero h2 span { color: var(--accent); }
+  .hero p { color: var(--text-dim); font-size: 15px; max-width: 520px; margin: 0 auto; }
+
+  /* Stats row */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .stat-num { font-size: 1.75rem; font-weight: 600; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-header h3 { font-size: 14px; font-weight: 600; }
+  .card-header p { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+  .step-badge {
+    width: 24px; height: 24px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .card-body { padding: 1.5rem; }
+
+  /* Textarea */
+  .email-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 1rem;
+    resize: vertical;
+    min-height: 160px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .email-input:focus { border-color: var(--accent); }
+  .email-input::placeholder { color: var(--text-muted); }
+
+  /* Examples */
+  .examples {
+    margin-top: 1rem;
+  }
+
+  .examples-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+
+  .example-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  /* Button */
+  .btn {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.875rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn:hover { background: #4f46e5; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Spinner */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Result */
+  .result { display: none; }
+
+  .category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .cat-complaint { background: var(--red-soft); color: var(--red); }
+  .cat-inquiry { background: var(--accent-soft); color: var(--accent); }
+  .cat-support { background: var(--amber-soft); color: var(--amber); }
+  .cat-spam { background: rgba(107,114,128,0.1); color: var(--text-muted); }
+  .cat-other { background: var(--green-soft); color: var(--green); }
+
+  .reply-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .reply-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 1rem;
+  }
+
+  .btn-copy {
+    flex: 1;
+    padding: 0.625rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-copy:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-new {
+    flex: 1;
+    padding: 0.625rem;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-new:hover { background: var(--accent); color: white; }
+
+  /* Error */
+  .error-box {
+    background: var(--red-soft);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    color: var(--red);
+    font-size: 13px;
+    display: none;
+  }
+
+  /* How it works */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+
+  .step-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+  .step h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .step p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* Categories */
+  .cats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .cat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.875rem;
+    text-align: center;
+  }
+  .cat-card .icon { font-size: 1.25rem; margin-bottom: 6px; }
+  .cat-card .name { font-size: 12px; font-weight: 600; }
+  .cat-card .desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 600px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+    .steps { grid-template-columns: 1fr; }
+    .cats { grid-template-columns: repeat(3, 1fr); }
+    .hero h2 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-dot">✉️</div>
+  <h1>Email Response Agent</h1>
+  <span>● Live</span>
+</header>
+
+<div class="layout">
+
+  <div class="hero">
+    <h2>AI that reads, classifies<br>and <span>replies to emails</span></h2>
+    <p>Paste any email below. The AI will detect its type and generate a professional reply in seconds.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="counter">0</div>
+      <div class="stat-label">Emails processed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">5</div>
+      <div class="stat-label">Categories detected</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">&lt;3s</div>
+      <div class="stat-label">Average response time</div>
+    </div>
+  </div>
+
+  <!-- Input card -->
+  <div class="card" id="inputCard">
+    <div class="card-header">
+      <div class="step-badge">1</div>
+      <h3>Paste your email</h3>
+      <p>Powered by Groq LLM</p>
+    </div>
+    <div class="card-body">
+      <textarea
+        class="email-input"
+        id="emailInput"
+        placeholder="Paste the email you received here...
+
+Example: Hi, I placed an order 2 weeks ago and it still hasn't arrived. Order #1234. Please help."
+      ></textarea>
+
+      <div class="examples">
+        <div class="examples-label">Try an example:</div>
+        <div class="example-chips">
+          <div class="chip" onclick="setExample('complaint')">😤 Angry customer</div>
+          <div class="chip" onclick="setExample('inquiry')">❓ Product question</div>
+          <div class="chip" onclick="setExample('support')">🔧 Tech support</div>
+          <div class="chip" onclick="setExample('spam')">🚫 Spam email</div>
+        </div>
+      </div>
+
+      <button class="btn" id="submitBtn" onclick="processEmail()">
+        <div class="spinner" id="spinner"></div>
+        <span id="btnText">Generate AI Reply →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Result card -->
+  <div class="card result" id="resultCard">
+    <div class="card-header">
+      <div class="step-badge">2</div>
+      <h3>AI generated reply</h3>
+    </div>
+    <div class="card-body">
+      <div class="category-badge" id="categoryBadge"></div>
+      <div class="reply-box" id="replyBox"></div>
+      <div class="reply-actions">
+        <button class="btn-copy" onclick="copyReply()">📋 Copy reply</button>
+        <button class="btn-new" onclick="resetForm()">✨ Try another email</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- How it works -->
+  <div class="card">
+    <div class="card-header">
+      <div class="step-badge">?</div>
+      <h3>How it works</h3>
+    </div>
+    <div class="card-body">
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">📨</div>
+          <h4>1. Paste email</h4>
+          <p>Copy any email you received and paste it in the box above.</p>
+        </div>
+        <div class="step">
+          <div class="step-icon">🤖</div>
+          <h4>2. AI classifies</h4>
+          <p>The AI reads the email and detects if it's a complaint, inquiry, support request, or spam.</p>
+        </div>
+        <div class="step">
+          <div class="step-icon">✅</div>
+          <h4>3. Reply generated</h4>
+          <p>A professional reply is generated based on the email type. Copy and send it!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div class="card">
+    <div class="card-header">
+      <div class="step-badge">5</div>
+      <h3>Email categories detected</h3>
+    </div>
+    <div class="card-body">
+      <div class="cats">
+        <div class="cat-card">
+          <div class="icon">😤</div>
+          <div class="name" style="color:#ef4444">Complaint</div>
+          <div class="desc">Apologetic, solution-focused reply</div>
+        </div>
+        <div class="cat-card">
+          <div class="icon">❓</div>
+          <div class="name" style="color:#6366f1">Inquiry</div>
+          <div class="desc">Helpful, informative reply</div>
+        </div>
+        <div class="cat-card">
+          <div class="icon">🔧</div>
+          <div class="name" style="color:#f59e0b">Support</div>
+          <div class="desc">Technical, step-by-step reply</div>
+        </div>
+        <div class="cat-card">
+          <div class="icon">🚫</div>
+          <div class="name" style="color:#6b7280">Spam</div>
+          <div class="desc">Auto-skipped, no reply</div>
+        </div>
+        <div class="cat-card">
+          <div class="icon">📄</div>
+          <div class="name" style="color:#22c55e">Other</div>
+          <div class="desc">Professional reply</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Built by Krishna Yadav &nbsp;·&nbsp;
+  <a href="https://github.com/Krishna-Yadav25/Email-Agent" target="_blank">GitHub</a>
+  &nbsp;·&nbsp;
+  <a href="/docs" target="_blank">API Docs</a>
+</footer>
+
+<script>
+  const API_URL = window.location.origin;
+
+  const examples = {
+    complaint: "Hi, I placed an order 2 weeks ago (Order #1234) and it still hasn't arrived. This is really frustrating as I needed it urgently. I want an immediate update or a full refund. This is unacceptable service.",
+    inquiry: "Hello, I'm interested in your premium plan. Can you tell me what features are included and whether there is a free trial available? Also, do you offer any student discounts?",
+    support: "Hi support team, I'm getting an error when trying to log into my account. It says 'Invalid credentials' even though I'm sure my password is correct. I've already tried resetting it twice. Can you help?",
+    spam: "CONGRATULATIONS! You have been selected as our lucky winner! Click here NOW to claim your $5,000 prize! Limited time offer! Act fast! Buy cheap medicines at 90% discount!"
+  };
+
+  function setExample(type) {
+    document.getElementById('emailInput').value = examples[type];
+  }
+
+  async function processEmail() {
+    const email = document.getElementById('emailInput').value.trim();
+    if (!email) {
+      showError("Please paste an email first.");
+      return;
+    }
+
+    setLoading(true);
+    hideError();
+    hideResult();
+
+    try {
+      const response = await fetch(`${API_URL}/process-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email_text: email })
+      });
+
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+
+      const data = await response.json();
+      showResult(data.category, data.reply);
+      incrementCounter();
+
+    } catch (err) {
+      showError("Could not connect to the API. Make sure the server is running at " + API_URL);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function showResult(category, reply) {
+    const badge = document.getElementById('categoryBadge');
+    const replyBox = document.getElementById('replyBox');
+    const resultCard = document.getElementById('resultCard');
+
+    const catMap = {
+      complaint: { label: '😤 Complaint', cls: 'cat-complaint' },
+      inquiry: { label: '❓ Inquiry', cls: 'cat-inquiry' },
+      support: { label: '🔧 Support', cls: 'cat-support' },
+      spam: { label: '🚫 Spam — no reply needed', cls: 'cat-spam' },
+      other: { label: '📄 Other', cls: 'cat-other' }
+    };
+
+    const cat = catMap[category] || { label: category, cls: 'cat-other' };
+    badge.textContent = cat.label;
+    badge.className = 'category-badge ' + cat.cls;
+    replyBox.textContent = reply;
+    resultCard.style.display = 'block';
+    resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function hideResult() {
+    document.getElementById('resultCard').style.display = 'none';
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    box.textContent = '⚠️ ' + msg;
+    box.style.display = 'block';
+  }
+
+  function hideError() {
+    document.getElementById('errorBox').style.display = 'none';
+  }
+
+  function setLoading(loading) {
+    const btn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('btnText');
+    btn.disabled = loading;
+    spinner.style.display = loading ? 'block' : 'none';
+    btnText.textContent = loading ? 'Generating reply...' : 'Generate AI Reply →';
+  }
+
+  function copyReply() {
+    const text = document.getElementById('replyBox').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy reply', 2000);
+    });
+  }
+
+  function resetForm() {
+    document.getElementById('emailInput').value = '';
+    hideResult();
+    hideError();
+    document.getElementById('inputCard').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function incrementCounter() {
+    const el = document.getElementById('counter');
+    const current = parseInt(el.textContent) || 0;
+    el.textContent = current + 1;
+  }
+</script>
+</body>
+</html>
